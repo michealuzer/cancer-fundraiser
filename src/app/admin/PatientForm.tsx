@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { addPatient, updatePatient } from "@/app/admin/actions";
 import type { Patient } from "@/lib/supabase";
-import { Loader2, UploadCloud, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const CONDITIONS = ["Cancer", "Anemia", "Heart Surgery", "Other"];
 
@@ -24,18 +23,10 @@ export default function PatientForm({ editing, onDone }: Props) {
   const [condition, setCondition] = useState("Cancer");
   const [story, setStory] = useState("");
   const [goal, setGoal] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState("");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  // Pre-fill when editing
   useEffect(() => {
     if (editing) {
       setName(editing.name);
@@ -43,9 +34,7 @@ export default function PatientForm({ editing, onDone }: Props) {
       setCondition(editing.condition);
       setStory(editing.story ?? "");
       setGoal(String(editing.goal_amount));
-      setExistingImageUrl(editing.cover_image_url);
-      setImageFile(null);
-      setImagePreview(null);
+      setImageUrl(editing.cover_image_url ?? "");
     } else {
       resetForm();
     }
@@ -53,45 +42,26 @@ export default function PatientForm({ editing, onDone }: Props) {
 
   function resetForm() {
     setName(""); setAge(""); setCondition("Cancer");
-    setStory(""); setGoal(""); setImageFile(null);
-    setImagePreview(null); setExistingImageUrl(null); setError("");
-  }
-
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  }
-
-  async function uploadImage(file: File): Promise<string> {
-    const ext = file.name.split(".").pop();
-    const path = `${Date.now()}.${ext}`;
-    const { error } = await supabase.storage
-      .from("patient-images")
-      .upload(path, file, { upsert: true });
-    if (error) throw new Error(`Upload failed: ${error.message}`);
-    const { data } = supabase.storage.from("patient-images").getPublicUrl(path);
-    return data.publicUrl;
+    setStory(""); setGoal(""); setImageUrl(""); setError("");
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!name || !age || !goal) { setError("Name, age, and goal amount are required."); return; }
+    if (!name || !age || !goal) {
+      setError("Name, age, and goal amount are required.");
+      return;
+    }
 
     startTransition(async () => {
       try {
-        let cover_image_url: string | null = existingImageUrl ?? null;
-        if (imageFile) cover_image_url = await uploadImage(imageFile);
-
         const payload = {
           name: name.trim(),
           age: Number(age),
           condition,
           story: story.trim() || null,
           goal_amount: Number(goal),
-          cover_image_url,
+          cover_image_url: imageUrl.trim() || null,
           is_active: true,
         };
 
@@ -152,28 +122,24 @@ export default function PatientForm({ editing, onDone }: Props) {
         </div>
       </div>
 
-      {/* Image upload */}
       <div className="space-y-1.5">
-        <Label>Cover Image</Label>
-        {(imagePreview ?? existingImageUrl) ? (
-          <div className="relative w-full overflow-hidden rounded-lg">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imagePreview ?? existingImageUrl!} alt="Preview" className="h-40 w-full object-cover" />
-            <button
-              type="button"
-              onClick={() => { setImageFile(null); setImagePreview(null); setExistingImageUrl(null); }}
-              className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white hover:bg-black/70"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : (
-          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-gray-200 p-6 text-center transition-colors hover:border-teal-400">
-            <UploadCloud className="h-8 w-8 text-gray-300" />
-            <span className="text-sm text-gray-500">Click to upload a photo</span>
-            <span className="text-xs text-gray-400">PNG, JPG up to 5MB</span>
-            <input type="file" accept="image/*" className="sr-only" onChange={handleFile} />
-          </label>
+        <Label htmlFor="imageUrl">Cover Image URL</Label>
+        <Input
+          id="imageUrl"
+          type="url"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="https://example.com/photo.jpg"
+        />
+        {imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt="Preview"
+            className="mt-2 h-40 w-full rounded-lg object-cover"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+            onLoad={(e) => (e.currentTarget.style.display = "block")}
+          />
         )}
       </div>
 
@@ -181,7 +147,9 @@ export default function PatientForm({ editing, onDone }: Props) {
 
       <div className="flex gap-3">
         <Button type="submit" variant="default" disabled={isPending} className="flex-1">
-          {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{editing ? "Saving…" : "Adding…"}</> : editing ? "Save Changes" : "Add Fundraiser"}
+          {isPending
+            ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{editing ? "Saving…" : "Adding…"}</>
+            : editing ? "Save Changes" : "Add Fundraiser"}
         </Button>
         {editing && (
           <Button type="button" variant="outline" onClick={() => { resetForm(); onDone(); }}>
