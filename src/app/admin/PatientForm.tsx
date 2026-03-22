@@ -145,10 +145,10 @@ export default function PatientForm({ editing, onDone }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="goal">Goal Amount (₦)</Label>
+        <Label htmlFor="goal">Goal Amount ($)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">₦</span>
-          <Input id="goal" type="number" min={1} className="pl-7" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="e.g. 500000" required />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">$</span>
+          <Input id="goal" type="number" min={1} className="pl-7" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="e.g. 5000" required />
         </div>
       </div>
 

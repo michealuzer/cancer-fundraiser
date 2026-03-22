@@ -10,13 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { toggleActive, deletePatient } from "@/app/admin/actions";
 import type { Patient } from "@/lib/supabase";
-import { Pencil, Trash2, Loader2 } from "lucide-react";
-
-function naira(n: number) {
-  if (n >= 1_000_000) return `₦${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
-  return `₦${n}`;
-}
+import { usd } from "@/lib/format";
+import { Pencil, Trash2, Loader2, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 interface Props {
   patients: Patient[];
@@ -61,6 +57,7 @@ export default function ManageTable({ patients, onEdit }: Props) {
             <TableHead>Raised / Goal</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -69,7 +66,7 @@ export default function ManageTable({ patients, onEdit }: Props) {
               <TableCell className="font-medium text-gray-900">{p.name}, {p.age}</TableCell>
               <TableCell className="text-gray-500">{p.condition}</TableCell>
               <TableCell className="text-gray-500">
-                {naira(p.raised_amount)} / {naira(p.goal_amount)}
+                {usd(p.raised_amount)} / {usd(p.goal_amount)}
               </TableCell>
               <TableCell>
                 <button
@@ -108,6 +105,15 @@ export default function ManageTable({ patients, onEdit }: Props) {
                     <Trash2 className="h-4 w-4 text-red-400" />
                   </Button>
                 </div>
+              </TableCell>
+              <TableCell>
+                <Link
+                  href={`/fundraiser/${p.id}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800"
+                >
+                  View <ExternalLink className="h-3 w-3" />
+                </Link>
               </TableCell>
             </TableRow>
           ))}

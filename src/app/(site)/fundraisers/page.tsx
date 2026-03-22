@@ -58,7 +58,7 @@ export default function FundraisersPage() {
         <div className="container mx-auto max-w-4xl px-4">
           <div className="grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {[
-              { label: "Total Raised", value: "₦2.4B+", icon: TrendingUp },
+              { label: "Total Raised", value: "$2.4M+", icon: TrendingUp },
               { label: "Active Campaigns", value: "1,200+", icon: Heart },
               { label: "Families Helped", value: "8,500+", icon: Users },
             ].map(({ label, value, icon: Icon }) => (

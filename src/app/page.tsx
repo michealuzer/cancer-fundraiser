@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Heart, ArrowRight } from "lucide-react";
 import { getPatients } from "@/lib/supabase";
 import type { Patient } from "@/lib/supabase";
+import { usd } from "@/lib/format";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,14 +11,6 @@ export const metadata: Metadata = {
   description:
     "Every child on this page is fighting for their life. Choose a fighter and make a difference today.",
 };
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function naira(n: number) {
-  if (n >= 1_000_000) return `₦${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
-  return `₦${n.toLocaleString()}`;
-}
 
 function conditionColor(condition: string): string {
   const c = condition.toLowerCase();
@@ -93,7 +86,7 @@ function PatientCard({ patient }: { patient: Patient }) {
           </div>
           <div className="flex items-center justify-between">
             <p className="text-xs text-white/50">
-              <span className="font-medium text-white/80">{naira(patient.raised_amount)}</span>
+              <span className="font-medium text-white/80">{usd(patient.raised_amount)}</span>
               {" "}raised
             </p>
             <p className="text-xs font-medium text-white/40">{pct}%</p>

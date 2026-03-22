@@ -1,16 +1,9 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getPatient, getDonations } from "@/lib/supabase";
+import { usd } from "@/lib/format";
 import { Progress } from "@/components/ui/progress";
 import DonateSection from "./DonateSection";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function naira(n: number) {
-  if (n >= 1_000_000) return `₦${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
-  return `₦${n.toLocaleString()}`;
-}
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -111,10 +104,10 @@ export default async function FundraiserPage({ params }: { params: { id: string 
             <div className="space-y-2 lg:hidden">
               <div className="flex items-end justify-between">
                 <p className="font-fraunces text-2xl font-bold text-teal-700">
-                  {naira(patient.raised_amount)}
+                  {usd(patient.raised_amount)}
                   <span className="ml-1 text-base font-normal text-gray-400">raised</span>
                 </p>
-                <p className="text-sm text-gray-500">Goal: {naira(patient.goal_amount)}</p>
+                <p className="text-sm text-gray-500">Goal: {usd(patient.goal_amount)}</p>
               </div>
               <Progress value={pct} className="h-3" />
               <p className="text-right text-sm font-medium text-teal-600">{pct}% funded</p>
@@ -142,13 +135,13 @@ export default async function FundraiserPage({ params }: { params: { id: string 
             <div className="hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm lg:block">
               <div className="mb-2 flex items-end justify-between">
                 <p className="font-fraunces text-3xl font-bold text-teal-700">
-                  {naira(patient.raised_amount)}
+                  {usd(patient.raised_amount)}
                 </p>
                 <p className="text-sm text-gray-400">{pct}%</p>
               </div>
               <Progress value={pct} className="mb-2 h-3" />
               <p className="text-sm text-gray-500">
-                raised of <span className="font-medium">{naira(patient.goal_amount)}</span> goal
+                raised of <span className="font-medium">{usd(patient.goal_amount)}</span> goal
               </p>
             </div>
 
@@ -185,7 +178,7 @@ export default async function FundraiserPage({ params }: { params: { id: string 
                             {d.donor_name}
                           </p>
                           <span className="shrink-0 text-xs text-teal-600 font-semibold">
-                            {naira(d.amount)}
+                            {usd(d.amount)}
                           </span>
                         </div>
                         {d.message && (

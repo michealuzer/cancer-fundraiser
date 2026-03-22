@@ -36,6 +36,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnon);
 
 // ── Patients ──────────────────────────────────────────────────────────────────
 
+/** Fetch all patients (active + inactive) — for admin use. */
+export async function getAllPatients(): Promise<Patient[]> {
+  const { data, error } = await supabase
+    .from("patients")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 /** Fetch all active patients ordered by most recently created. */
 export async function getPatients(): Promise<Patient[]> {
   const { data, error } = await supabase

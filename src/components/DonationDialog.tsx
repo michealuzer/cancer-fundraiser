@@ -13,7 +13,7 @@ import { submitDonation } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
-const PRESETS = [500, 1000, 5000];
+const PRESETS = [10, 25, 50];
 
 interface Props {
   patientId: string;
@@ -84,8 +84,8 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             <DialogTitle className="font-fraunces text-2xl">Thank you!</DialogTitle>
             <p className="text-gray-500">
               Your donation of{" "}
-              <span className="font-semibold text-teal-700">₦{Number(amount).toLocaleString()}</span>{" "}
-              is helping {patientName} fight on. Every naira counts.
+              <span className="font-semibold text-teal-700">${Number(amount).toLocaleString()}</span>{" "}
+              is helping {patientName} fight on. Every dollar counts.
             </p>
             <Button variant="default" onClick={() => handleOpenChange(false)} className="mt-2 w-full">
               Close
@@ -122,7 +122,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                           : "border-gray-200 text-gray-600 hover:border-teal-300"
                       )}
                     >
-                      ₦{v.toLocaleString()}
+                      ${v.toLocaleString()}
                     </button>
                   ))}
                 </div>
@@ -135,12 +135,12 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
-                    ₦
+                    $
                   </span>
                   <input
                     type="number"
                     min={1}
-                    placeholder="e.g. 2500"
+                    placeholder="e.g. 100"
                     value={custom}
                     onChange={(e) => handleCustom(e.target.value)}
                     className="w-full rounded-lg border border-gray-200 py-2.5 pl-8 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
@@ -191,7 +191,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                     Processing…
                   </>
                 ) : (
-                  `Donate${amount ? ` ₦${Number(amount).toLocaleString()}` : ""}`
+                  `Donate${amount ? ` $${Number(amount).toLocaleString()}` : ""}`
                 )}
               </Button>
             </div>

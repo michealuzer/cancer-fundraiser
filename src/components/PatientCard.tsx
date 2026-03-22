@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { Patient } from "@/lib/supabase";
+import { usd } from "@/lib/format";
 
 // ── Condition colour mapping ───────────────────────────────────────────────────
 
@@ -20,14 +21,6 @@ function conditionStyle(condition: string): { bg: string; text: string; dot: str
   if (c.includes("rehab") || c.includes("spinal") || c.includes("spine"))
     return { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" };
   return { bg: "bg-gray-50", text: "text-gray-600", dot: "bg-gray-400" };
-}
-
-// ── Currency formatter (₦) ─────────────────────────────────────────────────────
-
-function naira(n: number): string {
-  if (n >= 1_000_000) return `₦${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
-  return `₦${n.toLocaleString()}`;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -84,8 +77,8 @@ export default function PatientCard({ patient }: { patient: Patient }) {
         <div className="mt-auto space-y-1.5">
           <Progress value={pct} className="h-2" />
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span className="font-medium text-teal-700">{naira(patient.raised_amount)} raised</span>
-            <span>of {naira(patient.goal_amount)} goal</span>
+            <span className="font-medium text-teal-700">{usd(patient.raised_amount)} raised</span>
+            <span>of {usd(patient.goal_amount)} goal</span>
           </div>
         </div>
 
