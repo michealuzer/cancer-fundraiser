@@ -1,104 +1,163 @@
-import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Heart, TrendingUp, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import PatientGrid from "@/components/PatientGrid";
-import PatientGridSkeleton from "@/components/PatientGridSkeleton";
+import { Heart, ArrowRight } from "lucide-react";
+import { getPatients } from "@/lib/supabase";
+import type { Patient } from "@/lib/supabase";
+import type { Metadata } from "next";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "Small Fighters — Support a Child",
+  description:
+    "Every child on this page is fighting for their life. Choose a fighter and make a difference today.",
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function naira(n: number) {
+  if (n >= 1_000_000) return `₦${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
+  return `₦${n.toLocaleString()}`;
+}
+
+function conditionColor(condition: string): string {
+  const c = condition.toLowerCase();
+  if (c.includes("cancer") || c.includes("leukemia") || c.includes("tumor"))
+    return "bg-rose-900/60 text-rose-200";
+  if (c.includes("anemia") || c.includes("sickle"))
+    return "bg-amber-900/60 text-amber-200";
+  if (c.includes("surgery") || c.includes("heart") || c.includes("cardiac"))
+    return "bg-teal-800/60 text-teal-200";
+  if (c.includes("transplant") || c.includes("marrow"))
+    return "bg-purple-900/60 text-purple-200";
+  return "bg-white/10 text-white/70";
+}
+
+// ── Patient card ──────────────────────────────────────────────────────────────
+
+function PatientCard({ patient }: { patient: Patient }) {
+  const pct = Math.min(100, Math.round((patient.raised_amount / patient.goal_amount) * 100));
+  const urgency = pct < 30 ? "critical" : pct < 60 ? "active" : "close";
+
+  const barColor =
+    urgency === "critical" ? "bg-rose-400" :
+    urgency === "active"   ? "bg-amber-400" :
+                             "bg-emerald-400";
+
   return (
-    <div className="min-h-screen">
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-teal-800 to-teal-600 py-28 text-white md:py-36">
-        {/* decorative blurs */}
-        <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-teal-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-coral-500/20 blur-3xl" />
+    <Link
+      href={`/fundraiser/${patient.id}`}
+      className="group flex items-center gap-4 rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/10 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.12] hover:ring-white/20 active:scale-[0.98]"
+    >
+      {/* Circular photo */}
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
+        {patient.cover_image_url ? (
+          <Image
+            src={patient.cover_image_url}
+            alt={patient.name}
+            fill
+            className="object-cover"
+            sizes="64px"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-teal-800">
+            <span className="font-fraunces text-2xl font-bold text-teal-300">
+              {patient.name.charAt(0)}
+            </span>
+          </div>
+        )}
+      </div>
 
-        <div className="container relative mx-auto max-w-4xl px-4 text-center">
-          <span className="mb-6 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm text-teal-100 backdrop-blur-sm">
-            Supporting children since 2019
-          </span>
-
-          <h1 className="font-fraunces mb-6 text-5xl font-bold leading-tight md:text-6xl lg:text-7xl">
-            Every Child Deserves a{" "}
-            <span className="text-coral-300">Fighting Chance</span>
-          </h1>
-
-          <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-teal-100 md:text-xl">
-            Small Fighters connects families facing childhood illness with a community ready
-            to help. 100% of every donation goes directly to the child&apos;s care.
-          </p>
-
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Button variant="coral" size="lg" asChild>
-              <Link href="/fundraiser/new">Start a Fundraiser</Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-white text-white hover:bg-white/10"
-              asChild
+      {/* Info */}
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="font-fraunces text-base font-semibold leading-tight text-white">
+              {patient.name}
+            </p>
+            <span
+              className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${conditionColor(patient.condition)}`}
             >
-              <Link href="#fundraisers">
-                See All Fundraisers
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+              {patient.condition}
+            </span>
+          </div>
+          <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-white/30 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/60" />
+        </div>
+
+        {/* Progress */}
+        <div className="space-y-1">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className={`h-full rounded-full transition-all ${barColor}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-white/50">
+              <span className="font-medium text-white/80">{naira(patient.raised_amount)}</span>
+              {" "}raised
+            </p>
+            <p className="text-xs font-medium text-white/40">{pct}%</p>
           </div>
         </div>
-      </section>
+      </div>
+    </Link>
+  );
+}
 
-      {/* ── Stats bar ─────────────────────────────────────────────────────── */}
-      <section className="border-b border-gray-100 bg-white py-10">
-        <div className="container mx-auto max-w-4xl px-4">
-          <div className="grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            {[
-              { label: "Total Raised", value: "₦2.4B+", icon: TrendingUp },
-              { label: "Active Campaigns", value: "1,200+", icon: Heart },
-              { label: "Families Helped", value: "8,500+", icon: Users },
-            ].map(({ label, value, icon: Icon }) => (
-              <div key={label} className="flex flex-col items-center py-6 sm:px-8">
-                <Icon className="mb-2 h-5 w-5 text-teal-600" />
-                <p className="font-fraunces text-3xl font-bold text-teal-700">{value}</p>
-                <p className="text-sm text-gray-500">{label}</p>
-              </div>
-            ))}
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default async function LinkPage() {
+  const patients = await getPatients();
+
+  return (
+    <div className="min-h-screen bg-teal-950 px-4 py-10">
+      {/* Subtle radial glow behind header */}
+      <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-teal-700/20 blur-3xl" />
+
+      <div className="relative mx-auto flex max-w-sm flex-col gap-6">
+
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <div className="flex flex-col items-center gap-3 pt-2 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-coral-500/90 shadow-lg shadow-coral-700/30">
+            <Heart className="h-6 w-6 text-white" fill="white" />
           </div>
-        </div>
-      </section>
-
-      {/* ── Patient grid ──────────────────────────────────────────────────── */}
-      <section id="fundraisers" className="bg-background py-20">
-        <div className="container mx-auto max-w-6xl px-4">
-          <div className="mb-12 text-center">
-            <h2 className="font-fraunces mb-3 text-4xl font-bold text-teal-800">
-              Active Campaigns
-            </h2>
-            <p className="text-gray-500">
-              Real children. Real stories. Every donation makes a difference.
+          <div>
+            <h1 className="font-fraunces text-2xl font-bold text-white">Small Fighters</h1>
+            <p className="mt-1 text-sm leading-relaxed text-white/50">
+              Every child here is fighting for their life.
+              <br />Pick one to support today.
             </p>
           </div>
-
-          <Suspense fallback={<PatientGridSkeleton />}>
-            <PatientGrid />
-          </Suspense>
         </div>
-      </section>
 
-      {/* ── Bottom CTA ────────────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-r from-coral-500 to-coral-600 py-20 text-white">
-        <div className="container mx-auto max-w-3xl px-4 text-center">
-          <h2 className="font-fraunces mb-4 text-4xl font-bold">
-            Is your child a small fighter?
-          </h2>
-          <p className="mb-8 text-lg text-coral-100">
-            Create a fundraiser in minutes and connect with thousands of donors who want to help.
+        {/* ── Cards ───────────────────────────────────────────────────── */}
+        {patients.length === 0 ? (
+          <div className="rounded-2xl bg-white/5 p-8 text-center">
+            <p className="text-sm text-white/40">No active campaigns right now.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {patients.map((patient) => (
+              <PatientCard key={patient.id} patient={patient} />
+            ))}
+          </div>
+        )}
+
+        {/* ── Footer ──────────────────────────────────────────────────── */}
+        <div className="flex flex-col items-center gap-3 pb-4 pt-2">
+          <div className="h-px w-16 bg-white/10" />
+          <p className="text-center text-xs text-white/30">
+            100% of donations go directly to the child&apos;s care.
           </p>
-          <Button size="lg" className="bg-white text-coral-600 hover:bg-coral-50" asChild>
-            <Link href="/fundraiser/new">Create a Campaign</Link>
-          </Button>
+          <Link
+            href="/"
+            className="text-xs text-white/20 transition-colors hover:text-white/40"
+          >
+            smallfighters.netlify.app
+          </Link>
         </div>
-      </section>
+
+      </div>
     </div>
   );
 }

@@ -14,14 +14,8 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href="#campaigns" className="text-sm text-teal-100 transition-colors hover:text-white">
-            Campaigns
-          </Link>
-          <Link href="#how-it-works" className="text-sm text-teal-100 transition-colors hover:text-white">
-            How It Works
-          </Link>
-          <Link href="#about" className="text-sm text-teal-100 transition-colors hover:text-white">
-            About
+          <Link href="/fundraisers" className="text-sm text-teal-100 transition-colors hover:text-white">
+            See All Fundraisers
           </Link>
         </nav>
 

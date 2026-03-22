@@ -21,7 +21,7 @@ export default function Footer() {
           <div>
             <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-teal-400">Platform</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="hover:text-white transition-colors">Browse Campaigns</Link></li>
+              <li><Link href="/fundraisers" className="hover:text-white transition-colors">Browse Campaigns</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">Start a Fundraiser</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">How It Works</Link></li>
             </ul>
