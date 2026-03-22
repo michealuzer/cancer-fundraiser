@@ -11,26 +11,28 @@ const config: Config = {
     extend: {
       colors: {
         teal: {
-          50: "#f0fafa",
-          100: "#ccefef",
-          200: "#99dfdf",
-          300: "#5ec9c9",
-          400: "#2db5b5",
-          500: "#0D9B9B",
-          600: "#0D7E7E",
-          700: "#0D6E6E",
-          800: "#0a5858",
-          900: "#084444",
-          950: "#052c2c",
+          50:  "#f1f6f6",
+          100: "#d8e9e9",
+          200: "#b2d3d3",
+          300: "#7db4b4",
+          400: "#4d9494",
+          500: "#2d7a7a",
+          600: "#1f6565",
+          700: "#1a5454",   // primary — deep slate-teal
+          800: "#153f3f",
+          900: "#0e2c2c",
+          950: "#071818",
         },
         coral: {
-          300: "#f8a898",
-          400: "#f58a76",
-          500: "#F2735D",
-          600: "#e85a42",
-          700: "#d44433",
+          100: "#f5ece9",
+          200: "#e8ccC4",
+          300: "#d4a99e",
+          400: "#c08778",
+          500: "#a86b5a",   // muted terracotta
+          600: "#8f5445",
+          700: "#723f33",
         },
-        background: "#FAFAF7",
+        background: "#F8F6F2",   // slightly warmer warm white
       },
       fontFamily: {
         fraunces: ["var(--font-fraunces)", "serif"],
