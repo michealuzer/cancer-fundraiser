@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { ChevronDown, Heart, TrendingUp, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import PatientGrid from "@/components/PatientGrid";
 import PatientGridSkeleton from "@/components/PatientGridSkeleton";
 import type { Metadata } from "next";
@@ -34,22 +33,13 @@ export default function FundraisersPage() {
             to help. 100% of every donation goes directly to the child&apos;s care.
           </p>
 
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Button variant="coral" size="lg" asChild>
-              <Link href="/fundraiser/new">Start a Fundraiser</Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-white text-white hover:bg-white/10"
-              asChild
-            >
-              <Link href="#campaigns">
-                See All Fundraisers
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
+          <Link
+            href="#campaigns"
+            className="inline-flex items-center gap-2 rounded-full border border-white/40 px-6 py-2.5 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            See All Fundraisers
+            <ChevronDown className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
@@ -90,20 +80,6 @@ export default function FundraisersPage() {
         </div>
       </section>
 
-      {/* ── Bottom CTA ────────────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-r from-coral-500 to-coral-600 py-20 text-white">
-        <div className="container mx-auto max-w-3xl px-4 text-center">
-          <h2 className="font-fraunces mb-4 text-4xl font-bold">
-            Is your child a small fighter?
-          </h2>
-          <p className="mb-8 text-lg text-coral-100">
-            Create a fundraiser in minutes and connect with thousands of donors who want to help.
-          </p>
-          <Button size="lg" className="bg-white text-coral-600 hover:bg-coral-50" asChild>
-            <Link href="/fundraiser/new">Create a Campaign</Link>
-          </Button>
-        </div>
-      </section>
     </div>
   );
 }

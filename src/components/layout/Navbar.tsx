@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   return (
@@ -18,15 +17,6 @@ export default function Navbar() {
             See All Fundraisers
           </Link>
         </nav>
-
-        <div className="flex items-center gap-3">
-          <Link href="/sign-in" className="text-sm text-teal-100 transition-colors hover:text-white">
-            Sign In
-          </Link>
-          <Button variant="coral" size="sm" asChild>
-            <Link href="/fundraiser/new">Start a Fundraiser</Link>
-          </Button>
-        </div>
       </div>
     </header>
   );
