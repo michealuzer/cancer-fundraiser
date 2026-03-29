@@ -35,12 +35,12 @@ const DialogContent = React.forwardRef<
       className={cn(
         // Base
         "fixed z-50 w-full bg-white shadow-lg duration-200",
-        // Scrollable with max height
+        // Scrollable
         "overflow-y-auto max-h-[90dvh]",
         // Mobile: slide up from bottom
         "bottom-0 left-0 right-0 rounded-t-3xl p-6",
-        // Desktop: centered modal
-        "sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl",
+        // Desktop: centered — reset mobile offsets, then center
+        "sm:bottom-auto sm:top-[50%] sm:left-[50%] sm:right-auto sm:w-full sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
