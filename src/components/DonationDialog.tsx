@@ -55,11 +55,11 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-sm">
+      {/* no max-w here — dialog.tsx handles width per breakpoint */}
+      <DialogContent>
 
         {view === "pay" ? (
           <div className="space-y-4">
-            {/* Header */}
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -74,7 +74,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               </div>
             </div>
 
-            {/* Donor summary */}
             <div className="rounded-2xl bg-teal-50 px-4 py-3 ring-1 ring-teal-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -112,7 +111,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             </DialogHeader>
 
             <div className="mt-2 space-y-4">
-              {/* Presets */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   Select or enter amount
@@ -136,7 +134,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                 </div>
               </div>
 
-              {/* Custom amount */}
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">$</span>
                 <input
@@ -149,7 +146,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                 />
               </div>
 
-              {/* Name */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Your name <span className="text-gray-400">(optional)</span>
@@ -163,7 +159,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                 />
               </div>
 
-              {/* Message */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Message <span className="text-gray-400">(optional)</span>
