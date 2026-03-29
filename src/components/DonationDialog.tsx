@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 
 const PRESETS = [10, 25, 50, 100];
 
@@ -26,7 +26,8 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
   const [donorName, setDonorName] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
+  const [pendingMethod, setPendingMethod] = useState<"paypal" | "card" | null>(null);
 
   const numericAmount = amount ? Number(amount) : null;
   const activePreset = PRESETS.find((p) => p === numericAmount) ?? null;
@@ -36,6 +37,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
     setDonorName("");
     setMessage("");
     setError("");
+    setPendingMethod(null);
   }
 
   function handleOpenChange(val: boolean) {
@@ -43,13 +45,14 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
     onOpenChange(val);
   }
 
-  function handleSubmit() {
+  function handleCheckout(method: "paypal" | "card") {
     setError("");
     if (!numericAmount || numericAmount <= 0) {
       setError("Please enter a donation amount.");
       return;
     }
 
+    setPendingMethod(method);
     startTransition(async () => {
       try {
         const res = await fetch("/api/checkout", {
@@ -61,6 +64,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             amount: numericAmount,
             donorName: donorName.trim() || "Anonymous",
             message: message.trim(),
+            landingPage: method === "card" ? "BILLING" : "LOGIN",
           }),
         });
         const data = await res.json();
@@ -68,9 +72,11 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
           window.location.href = data.url;
         } else {
           setError("Could not start checkout. Please try again.");
+          setPendingMethod(null);
         }
       } catch {
         setError("Something went wrong. Please try again.");
+        setPendingMethod(null);
       }
     });
   }
@@ -83,7 +89,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             Support {patientName}
           </DialogTitle>
           <DialogDescription>
-            100% goes directly to {patientName}&apos;s care. Secure checkout via PayPal.
+            100% goes directly to {patientName}&apos;s care.
           </DialogDescription>
         </DialogHeader>
 
@@ -113,11 +119,9 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             </div>
           </div>
 
-          {/* Single amount input */}
+          {/* Amount input */}
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">
-              $
-            </span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">$</span>
             <input
               type="number"
               min={1}
@@ -158,22 +162,48 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 
-          <Button
-            variant="coral"
-            size="lg"
-            className="w-full py-6 text-base"
-            onClick={handleSubmit}
-            disabled={isPending || !numericAmount || numericAmount <= 0}
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Redirecting to PayPal…
-              </>
-            ) : (
-              `Donate${numericAmount && numericAmount > 0 ? ` $${numericAmount.toLocaleString()}` : ""} via PayPal`
-            )}
-          </Button>
+          {/* Payment buttons */}
+          <div className="flex flex-col gap-2">
+            {/* PayPal */}
+            <Button
+              variant="coral"
+              size="lg"
+              className="w-full gap-2 py-5"
+              onClick={() => handleCheckout("paypal")}
+              disabled={pending}
+            >
+              {pendingMethod === "paypal" ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</>
+              ) : (
+                <>
+                  {/* PayPal logo mark */}
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.082-8.558 6.082H9.825l-1.314 8.32h3.498c.46 0 .85-.334.922-.79l.038-.196.731-4.629.047-.254a.932.932 0 0 1 .921-.79h.58c3.757 0 6.698-1.527 7.556-5.945.36-1.847.174-3.389-.582-4.511z"/>
+                  </svg>
+                  Pay with PayPal
+                </>
+              )}
+            </Button>
+
+            {/* Card */}
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full gap-2 py-5 border-2"
+              onClick={() => handleCheckout("card")}
+              disabled={pending}
+            >
+              {pendingMethod === "card" ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</>
+              ) : (
+                <><CreditCard className="h-4 w-4" /> Pay by Card</>
+              )}
+            </Button>
+          </div>
+
+          <p className="text-center text-xs text-gray-400">
+            Secured by PayPal &middot; No account needed for card payments
+          </p>
         </div>
       </DialogContent>
     </Dialog>

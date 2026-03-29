@@ -19,7 +19,7 @@ async function getAccessToken(): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const { patientId, patientName, amount, donorName, message } = await req.json();
+  const { patientId, patientName, amount, donorName, message, landingPage } = await req.json();
 
   if (!patientId || !amount || amount <= 0) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://smallfighters.netlify.app";
   const accessToken = await getAccessToken();
 
-  // Build return URL — PayPal appends ?token=ORDER_ID automatically
   const returnUrl = new URL(`${siteUrl}/api/capture`);
   returnUrl.searchParams.set("patient_id", patientId);
   returnUrl.searchParams.set("donor_name", donorName || "Anonymous");
@@ -45,12 +44,13 @@ export async function POST(req: NextRequest) {
       purchase_units: [
         {
           amount: { currency_code: "USD", value: Number(amount).toFixed(2) },
-          description: `Donation for ${patientName} — Small Fighters`,
+          description: `Donation for ${patientName} \u2014 Small Fighters`,
         },
       ],
       application_context: {
         brand_name: "Small Fighters",
-        landing_page: "NO_PREFERENCE",
+        // LOGIN = PayPal account screen, BILLING = card form screen
+        landing_page: landingPage === "BILLING" ? "BILLING" : "LOGIN",
         user_action: "PAY_NOW",
         return_url: returnUrl.toString(),
         cancel_url: `${siteUrl}/fundraiser/${patientId}`,
