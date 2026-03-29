@@ -22,20 +22,17 @@ interface Props {
 }
 
 export default function DonationDialog({ patientId, patientName, open, onOpenChange }: Props) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [custom, setCustom] = useState("");
+  const [amount, setAmount] = useState("");
   const [donorName, setDonorName] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  // Only one source of truth at a time: preset OR custom
-  const amount = selected !== null ? selected : custom ? Number(custom) : null;
-  const usingCustom = selected === null && custom !== "";
+  const numericAmount = amount ? Number(amount) : null;
+  const activePreset = PRESETS.find((p) => p === numericAmount) ?? null;
 
   function reset() {
-    setSelected(null);
-    setCustom("");
+    setAmount("");
     setDonorName("");
     setMessage("");
     setError("");
@@ -46,22 +43,10 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
     onOpenChange(val);
   }
 
-  function handlePreset(v: number) {
-    setSelected(v);
-    setCustom(""); // clear custom when preset chosen
-    setError("");
-  }
-
-  function handleCustomChange(v: string) {
-    setCustom(v);
-    setSelected(null); // deselect preset when typing custom
-    setError("");
-  }
-
   function handleSubmit() {
     setError("");
-    if (!amount || amount <= 0) {
-      setError("Please select an amount or enter a custom one.");
+    if (!numericAmount || numericAmount <= 0) {
+      setError("Please enter a donation amount.");
       return;
     }
 
@@ -73,7 +58,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
           body: JSON.stringify({
             patientId,
             patientName,
-            amount,
+            amount: numericAmount,
             donorName: donorName.trim() || "Anonymous",
             message: message.trim(),
           }),
@@ -104,28 +89,20 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
 
         <div className="mt-2 space-y-5">
 
-          {/* Amount display */}
-          <div className="rounded-xl bg-gray-50 px-4 py-3 text-center">
-            <p className="text-xs font-medium uppercase tracking-widest text-gray-400">Donating</p>
-            <p className="font-fraunces text-3xl font-bold text-teal-700">
-              {amount && amount > 0 ? `$${Number(amount).toLocaleString()}` : "—"}
-            </p>
-          </div>
-
-          {/* Preset buttons */}
+          {/* Preset shortcuts */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Quick select
+              Select or enter amount
             </label>
             <div className="grid grid-cols-4 gap-2">
               {PRESETS.map((v) => (
                 <button
                   key={v}
                   type="button"
-                  onClick={() => handlePreset(v)}
+                  onClick={() => { setAmount(String(v)); setError(""); }}
                   className={cn(
                     "rounded-xl border-2 py-2.5 text-sm font-semibold transition-all",
-                    selected === v
+                    activePreset === v
                       ? "border-teal-600 bg-teal-50 text-teal-700 shadow-sm"
                       : "border-gray-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/50"
                   )}
@@ -136,14 +113,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-100" />
-            <span className="text-xs font-medium text-gray-400">or enter your own</span>
-            <div className="h-px flex-1 bg-gray-100" />
-          </div>
-
-          {/* Custom amount */}
+          {/* Single amount input */}
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">
               $
@@ -151,15 +121,10 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             <input
               type="number"
               min={1}
-              placeholder="Enter amount"
-              value={custom}
-              onChange={(e) => handleCustomChange(e.target.value)}
-              className={cn(
-                "w-full rounded-xl border-2 py-3 pl-8 pr-3 text-sm font-medium outline-none transition-all",
-                usingCustom
-                  ? "border-teal-500 bg-teal-50/50 text-teal-700 ring-1 ring-teal-200"
-                  : "border-gray-200 text-gray-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-100"
-              )}
+              placeholder="Or type any amount"
+              value={amount}
+              onChange={(e) => { setAmount(e.target.value); setError(""); }}
+              className="w-full rounded-xl border-2 border-gray-200 py-3 pl-8 pr-3 text-sm font-medium outline-none transition-all focus:border-teal-500 focus:ring-1 focus:ring-teal-100"
             />
           </div>
 
@@ -198,7 +163,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             size="lg"
             className="w-full py-6 text-base"
             onClick={handleSubmit}
-            disabled={isPending || !amount || amount <= 0}
+            disabled={isPending || !numericAmount || numericAmount <= 0}
           >
             {isPending ? (
               <>
@@ -206,7 +171,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                 Redirecting to PayPal…
               </>
             ) : (
-              `Donate${amount && amount > 0 ? ` $${Number(amount).toLocaleString()}` : ""} via PayPal`
+              `Donate${numericAmount && numericAmount > 0 ? ` $${numericAmount.toLocaleString()}` : ""} via PayPal`
             )}
           </Button>
         </div>
