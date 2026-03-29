@@ -1,9 +1,12 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getPatient, getDonations } from "@/lib/supabase";
 import { usd } from "@/lib/format";
 import { Progress } from "@/components/ui/progress";
 import DonateSection from "./DonateSection";
+import MobileDonateBar from "./MobileDonateBar";
+import DonationSuccessBanner from "./DonationSuccessBanner";
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -30,7 +33,7 @@ function conditionStyle(condition: string) {
   return "bg-gray-50 text-gray-600 border-gray-200";
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ────────────────────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const patient = await getPatient(params.id);
@@ -54,7 +57,7 @@ export default async function FundraiserPage({ params }: { params: { id: string 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── Cover image ─────────────────────────────────────────────────── */}
+      {/* ── Cover image ───────────────────────────────────────────────────────── */}
       <div className="relative h-64 w-full overflow-hidden bg-teal-100 md:h-[420px]">
         {patient.cover_image_url ? (
           <Image
@@ -76,11 +79,17 @@ export default async function FundraiserPage({ params }: { params: { id: string 
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
 
-      {/* ── Body ────────────────────────────────────────────────────────── */}
-      <div className="container mx-auto max-w-6xl px-4 py-10">
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+      {/* ── Body ─────────────────────────────────────────────────────────────────── */}
+      <div className="container mx-auto max-w-6xl px-4 py-10 pb-28 lg:pb-10">
 
-          {/* ── Main content ──────────────────────────────────────────── */}
+        {/* Success banner after returning from Stripe */}
+        <Suspense fallback={null}>
+          <DonationSuccessBanner />
+        </Suspense>
+
+        <div className="mt-6 flex flex-col gap-10 lg:flex-row lg:items-start">
+
+          {/* ── Main content ───────────────────────────────────────────────── */}
           <div className="min-w-0 flex-1 space-y-8">
 
             {/* Header */}
@@ -128,7 +137,7 @@ export default async function FundraiserPage({ params }: { params: { id: string 
             </div>
           </div>
 
-          {/* ── Sidebar ───────────────────────────────────────────────── */}
+          {/* ── Sidebar ───────────────────────────────────────────────────── */}
           <div className="w-full space-y-6 lg:sticky lg:top-24 lg:w-80 lg:shrink-0">
 
             {/* Progress card — desktop only */}
@@ -194,6 +203,9 @@ export default async function FundraiserPage({ params }: { params: { id: string 
           </div>
         </div>
       </div>
+
+      {/* Sticky donate button — mobile only, always visible */}
+      <MobileDonateBar patientId={patient.id} patientName={patient.name} />
     </div>
   );
 }
