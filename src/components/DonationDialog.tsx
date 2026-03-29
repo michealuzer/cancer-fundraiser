@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
-const PRESETS = [10, 25, 50];
+const PRESETS = [10, 25, 50, 100];
 
 interface Props {
   patientId: string;
@@ -29,7 +29,9 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const amount = selected ?? (custom ? Number(custom) : null);
+  // Only one source of truth at a time: preset OR custom
+  const amount = selected !== null ? selected : custom ? Number(custom) : null;
+  const usingCustom = selected === null && custom !== "";
 
   function reset() {
     setSelected(null);
@@ -46,18 +48,20 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
 
   function handlePreset(v: number) {
     setSelected(v);
-    setCustom("");
+    setCustom(""); // clear custom when preset chosen
+    setError("");
   }
 
-  function handleCustom(v: string) {
+  function handleCustomChange(v: string) {
     setCustom(v);
-    setSelected(null);
+    setSelected(null); // deselect preset when typing custom
+    setError("");
   }
 
   function handleSubmit() {
     setError("");
     if (!amount || amount <= 0) {
-      setError("Please enter or select a donation amount.");
+      setError("Please select an amount or enter a custom one.");
       return;
     }
 
@@ -94,54 +98,69 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             Support {patientName}
           </DialogTitle>
           <DialogDescription>
-            100% of your donation goes directly to {patientName}&apos;s care.
-            You&apos;ll be taken to a secure Stripe checkout.
+            100% goes directly to {patientName}&apos;s care. Secure checkout via PayPal.
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-2 space-y-5">
-          {/* Preset amounts */}
+
+          {/* Amount display */}
+          <div className="rounded-xl bg-gray-50 px-4 py-3 text-center">
+            <p className="text-xs font-medium uppercase tracking-widest text-gray-400">Donating</p>
+            <p className="font-fraunces text-3xl font-bold text-teal-700">
+              {amount && amount > 0 ? `$${Number(amount).toLocaleString()}` : "—"}
+            </p>
+          </div>
+
+          {/* Preset buttons */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Select amount
+              Quick select
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {PRESETS.map((v) => (
                 <button
                   key={v}
                   type="button"
                   onClick={() => handlePreset(v)}
                   className={cn(
-                    "rounded-lg border-2 py-2.5 text-sm font-semibold transition-all",
+                    "rounded-xl border-2 py-2.5 text-sm font-semibold transition-all",
                     selected === v
-                      ? "border-teal-600 bg-teal-50 text-teal-700"
-                      : "border-gray-200 text-gray-600 hover:border-teal-300"
+                      ? "border-teal-600 bg-teal-50 text-teal-700 shadow-sm"
+                      : "border-gray-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/50"
                   )}
                 >
-                  ${v.toLocaleString()}
+                  ${v}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-100" />
+            <span className="text-xs font-medium text-gray-400">or enter your own</span>
+            <div className="h-px flex-1 bg-gray-100" />
+          </div>
+
           {/* Custom amount */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Or enter custom amount
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
-                $
-              </span>
-              <input
-                type="number"
-                min={1}
-                placeholder="e.g. 100"
-                value={custom}
-                onChange={(e) => handleCustom(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 py-2.5 pl-8 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
-              />
-            </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">
+              $
+            </span>
+            <input
+              type="number"
+              min={1}
+              placeholder="Enter amount"
+              value={custom}
+              onChange={(e) => handleCustomChange(e.target.value)}
+              className={cn(
+                "w-full rounded-xl border-2 py-3 pl-8 pr-3 text-sm font-medium outline-none transition-all",
+                usingCustom
+                  ? "border-teal-500 bg-teal-50/50 text-teal-700 ring-1 ring-teal-200"
+                  : "border-gray-200 text-gray-700 focus:border-teal-400 focus:ring-1 focus:ring-teal-100"
+              )}
+            />
           </div>
 
           {/* Donor name */}
@@ -154,7 +173,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               placeholder="Anonymous"
               value={donorName}
               onChange={(e) => setDonorName(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-100"
             />
           </div>
 
@@ -164,11 +183,11 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               Message <span className="text-gray-400">(optional)</span>
             </label>
             <textarea
-              rows={3}
-              placeholder={`Write an encouraging note for ${patientName}...`}
+              rows={2}
+              placeholder={`An encouraging note for ${patientName}\u2026`}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+              className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-100"
             />
           </div>
 
@@ -177,17 +196,17 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
           <Button
             variant="coral"
             size="lg"
-            className="w-full"
+            className="w-full py-6 text-base"
             onClick={handleSubmit}
-            disabled={isPending}
+            disabled={isPending || !amount || amount <= 0}
           >
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Redirecting to checkout…
+                Redirecting to PayPal…
               </>
             ) : (
-              `Donate${amount ? ` $${Number(amount).toLocaleString()}` : ""} securely`
+              `Donate${amount && amount > 0 ? ` $${Number(amount).toLocaleString()}` : ""} via PayPal`
             )}
           </Button>
         </div>
