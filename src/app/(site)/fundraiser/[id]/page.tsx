@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { Heart, Users } from "lucide-react";
 import { getPatient, getDonations } from "@/lib/supabase";
 import { usd } from "@/lib/format";
 import { Progress } from "@/components/ui/progress";
@@ -33,13 +34,11 @@ function conditionStyle(condition: string) {
   return "bg-gray-50 text-gray-600 border-gray-200";
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────────────────
-
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const patient = await getPatient(params.id);
   if (!patient) return { title: "Not found" };
   return {
-    title: `${patient.name}'s Campaign — Small Fighters`,
+    title: `Help ${patient.name} — Small Fighters`,
     description: patient.story?.slice(0, 155) ?? `Support ${patient.name}'s medical journey.`,
   };
 }
@@ -53,12 +52,16 @@ export default async function FundraiserPage({ params }: { params: { id: string 
   if (!patient) notFound();
 
   const pct = Math.min(100, Math.round((patient.raised_amount / patient.goal_amount) * 100));
-  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://smallfighters.netlify.app"}/fundraiser/${patient.id}`;
+  const pageUrl = `${
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://smallfighters.netlify.app"
+  }/fundraiser/${patient.id}`;
+  const remaining = patient.goal_amount - patient.raised_amount;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* ── Cover image ───────────────────────────────────────────────────────── */}
-      <div className="relative h-64 w-full overflow-hidden bg-teal-100 md:h-[420px]">
+    <div className="min-h-screen bg-[#FDF8F4]">
+
+      {/* ── Cover image ──────────────────────────────────────────────── */}
+      <div className="relative h-72 w-full overflow-hidden bg-teal-100 md:h-[460px]">
         {patient.cover_image_url ? (
           <Image
             src={patient.cover_image_url}
@@ -69,27 +72,37 @@ export default async function FundraiserPage({ params }: { params: { id: string 
             sizes="100vw"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-100 to-teal-200">
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-100 to-coral-100">
             <span className="font-fraunces text-9xl font-bold text-teal-300">
               {patient.name.charAt(0)}
             </span>
           </div>
         )}
-        {/* gradient overlay for legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        {/* Warm gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+
+        {/* Name badge over image */}
+        <div className="absolute bottom-6 left-6 right-6">
+          <p className="font-fraunces text-3xl font-bold text-white drop-shadow-md md:text-4xl">
+            Help {patient.name} heal
+          </p>
+          <p className="mt-1 text-sm text-white/80">
+            Age {patient.age} &middot; {patient.condition}
+          </p>
+        </div>
       </div>
 
-      {/* ── Body ─────────────────────────────────────────────────────────────────── */}
-      <div className="container mx-auto max-w-6xl px-4 py-10 pb-28 lg:pb-10">
+      {/* ── Body ─────────────────────────────────────────────────────── */}
+      <div className="container mx-auto max-w-6xl px-4 py-8 pb-28 lg:pb-10">
 
-        {/* Success banner after returning from Stripe */}
+        {/* Success banner */}
         <Suspense fallback={null}>
           <DonationSuccessBanner />
         </Suspense>
 
         <div className="mt-6 flex flex-col gap-10 lg:flex-row lg:items-start">
 
-          {/* ── Main content ───────────────────────────────────────────────── */}
+          {/* ── Main content ─────────────────────────────────────────── */}
           <div className="min-w-0 flex-1 space-y-8">
 
             {/* Header */}
@@ -109,7 +122,7 @@ export default async function FundraiserPage({ params }: { params: { id: string 
               </span>
             </div>
 
-            {/* Progress — shown in main on mobile, hidden here on lg (shown in sidebar) */}
+            {/* Mobile progress */}
             <div className="space-y-2 lg:hidden">
               <div className="flex items-end justify-between">
                 <p className="font-fraunces text-2xl font-bold text-teal-700">
@@ -120,6 +133,17 @@ export default async function FundraiserPage({ params }: { params: { id: string 
               </div>
               <Progress value={pct} className="h-3" />
               <p className="text-right text-sm font-medium text-teal-600">{pct}% funded</p>
+            </div>
+
+            {/* Warm motivational banner */}
+            <div className="flex items-start gap-3 rounded-2xl bg-amber-50 px-4 py-4 ring-1 ring-amber-100">
+              <Heart className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" fill="currentColor" />
+              <p className="text-sm leading-relaxed text-amber-800">
+                <span className="font-semibold">{patient.name} needs your help.</span>{" "}
+                {remaining > 0
+                  ? `Just ${usd(remaining)} more is needed to reach the goal. Every dollar counts.`
+                  : `The goal has been reached! Extra donations continue to support ongoing care.`}
+              </p>
             </div>
 
             {/* Story */}
@@ -137,48 +161,64 @@ export default async function FundraiserPage({ params }: { params: { id: string 
             </div>
           </div>
 
-          {/* ── Sidebar ───────────────────────────────────────────────────── */}
-          <div className="w-full space-y-6 lg:sticky lg:top-24 lg:w-80 lg:shrink-0">
+          {/* ── Sidebar ──────────────────────────────────────────────── */}
+          <div className="w-full space-y-5 lg:sticky lg:top-24 lg:w-80 lg:shrink-0">
 
-            {/* Progress card — desktop only */}
-            <div className="hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm lg:block">
-              <div className="mb-2 flex items-end justify-between">
+            {/* Progress card */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+              <div className="mb-1 flex items-end justify-between">
                 <p className="font-fraunces text-3xl font-bold text-teal-700">
                   {usd(patient.raised_amount)}
                 </p>
-                <p className="text-sm text-gray-400">{pct}%</p>
+                <p className="text-sm font-semibold text-teal-500">{pct}%</p>
               </div>
               <Progress value={pct} className="mb-2 h-3" />
               <p className="text-sm text-gray-500">
-                raised of <span className="font-medium">{usd(patient.goal_amount)}</span> goal
+                raised of{" "}
+                <span className="font-semibold text-gray-700">{usd(patient.goal_amount)}</span> goal
               </p>
+              {remaining > 0 && (
+                <p className="mt-2 text-xs font-medium text-amber-600">
+                  {usd(remaining)} still needed
+                </p>
+              )}
             </div>
 
-            {/* Donate + share (client island) */}
+            {/* Donate + share */}
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <DonateSection
                 patientId={patient.id}
                 patientName={patient.name}
                 pageUrl={pageUrl}
+                donorCount={donations.length}
               />
             </div>
 
-            {/* Recent donations */}
+            {/* Recent supporters */}
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h3 className="font-fraunces mb-4 text-lg font-semibold text-gray-800">
-                Recent Supporters
-              </h3>
+              <div className="mb-4 flex items-center gap-2">
+                <Users className="h-4 w-4 text-teal-500" />
+                <h3 className="font-fraunces text-lg font-semibold text-gray-800">
+                  Supporters
+                </h3>
+                {donations.length > 0 && (
+                  <span className="ml-auto rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700">
+                    {donations.length}
+                  </span>
+                )}
+              </div>
 
               {donations.length === 0 ? (
-                <p className="text-sm text-gray-400">
-                  Be the first to support {patient.name}!
-                </p>
+                <div className="rounded-xl bg-gray-50 p-4 text-center">
+                  <p className="text-sm text-gray-400">
+                    Be the first to support {patient.name}!
+                  </p>
+                </div>
               ) : (
                 <ul className="space-y-4">
                   {donations.slice(0, 8).map((d) => (
                     <li key={d.id} className="flex items-start gap-3">
-                      {/* Avatar */}
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-bold text-teal-700">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-100 to-teal-200 text-xs font-bold text-teal-700">
                         {d.donor_name.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -186,12 +226,14 @@ export default async function FundraiserPage({ params }: { params: { id: string 
                           <p className="truncate text-sm font-medium text-gray-800">
                             {d.donor_name}
                           </p>
-                          <span className="shrink-0 text-xs text-teal-600 font-semibold">
+                          <span className="shrink-0 text-xs font-semibold text-teal-600">
                             {usd(d.amount)}
                           </span>
                         </div>
                         {d.message && (
-                          <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">{d.message}</p>
+                          <p className="mt-0.5 line-clamp-2 text-xs italic text-gray-500">
+                            &ldquo;{d.message}&rdquo;
+                          </p>
                         )}
                         <p className="mt-0.5 text-xs text-gray-400">{timeAgo(d.created_at)}</p>
                       </div>
@@ -204,7 +246,7 @@ export default async function FundraiserPage({ params }: { params: { id: string 
         </div>
       </div>
 
-      {/* Sticky donate button — mobile only, always visible */}
+      {/* Sticky donate — mobile only */}
       <MobileDonateBar patientId={patient.id} patientName={patient.name} />
     </div>
   );
