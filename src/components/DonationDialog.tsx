@@ -45,7 +45,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
     onOpenChange(val);
   }
 
-  function handleCheckout(method: "paypal" | "card") {
+  async function handleCheckout(method: "paypal" | "card") {
     setError("");
     if (!numericAmount || numericAmount <= 0) {
       setError("Please enter a donation amount.");
@@ -55,7 +55,9 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
     setPendingMethod(method);
     startTransition(async () => {
       try {
-        const res = await fetch("/api/checkout", {
+        // Card uses Stripe, PayPal uses PayPal
+        const endpoint = method === "card" ? "/api/checkout-card" : "/api/checkout";
+        const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -64,7 +66,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             amount: numericAmount,
             donorName: donorName.trim() || "Anonymous",
             message: message.trim(),
-            landingPage: method === "card" ? "BILLING" : "LOGIN",
           }),
         });
         const data = await res.json();
@@ -164,7 +165,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
 
           {/* Payment buttons */}
           <div className="flex flex-col gap-2">
-            {/* PayPal */}
             <Button
               variant="coral"
               size="lg"
@@ -184,7 +184,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               )}
             </Button>
 
-            {/* Card */}
             <Button
               variant="outline"
               size="lg"
@@ -201,7 +200,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
           </div>
 
           <p className="text-center text-xs text-gray-400">
-            Secured by PayPal &middot; No account needed for card payments
+            PayPal &middot; Stripe &middot; No account needed for card payments
           </p>
         </div>
       </DialogContent>
