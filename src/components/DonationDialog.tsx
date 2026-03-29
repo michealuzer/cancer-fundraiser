@@ -74,7 +74,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               </div>
             </div>
 
-            {/* Donor summary card */}
+            {/* Donor summary */}
             <div className="rounded-2xl bg-teal-50 px-4 py-3 ring-1 ring-teal-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -92,7 +92,6 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               )}
             </div>
 
-            {/* PayPal buttons */}
             <PayPalButtons
               patientId={patientId}
               patientName={patientName}
@@ -185,7 +184,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                 onClick={handleContinue}
                 className="w-full rounded-xl bg-teal-600 py-3.5 text-base font-semibold text-white transition-colors hover:bg-teal-700 active:scale-[0.98]"
               >
-                Continue to Payment
+                Continue to Donate
               </button>
             </div>
           </>
