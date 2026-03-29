@@ -173,14 +173,13 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               disabled={pending}
             >
               {pendingMethod === "paypal" ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting\u2026</>
               ) : (
                 <>
-                  {/* PayPal logo mark */}
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.082-8.558 6.082H9.825l-1.314 8.32h3.498c.46 0 .85-.334.922-.79l.038-.196.731-4.629.047-.254a.932.932 0 0 1 .921-.79h.58c3.757 0 6.698-1.527 7.556-5.945.36-1.847.174-3.389-.582-4.511z"/>
                   </svg>
-                  Pay with PayPal
+                  Donate with PayPal
                 </>
               )}
             </Button>
@@ -189,14 +188,14 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
             <Button
               variant="outline"
               size="lg"
-              className="w-full gap-2 py-5 border-2"
+              className="w-full gap-2 border-2 py-5"
               onClick={() => handleCheckout("card")}
               disabled={pending}
             >
               {pendingMethod === "card" ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting\u2026</>
               ) : (
-                <><CreditCard className="h-4 w-4" /> Pay by Card</>
+                <><CreditCard className="h-4 w-4" /> Donate by Card</>
               )}
             </Button>
           </div>
