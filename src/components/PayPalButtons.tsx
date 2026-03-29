@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Lock } from "lucide-react";
 
 interface Props {
   patientId: string;
@@ -36,8 +36,9 @@ export default function PayPalButtons({ patientId, patientName, amount, donorNam
         style: {
           layout: "vertical",
           color: "gold",
-          shape: "rect",
+          shape: "pill",
           label: "donate",
+          height: 44,
         },
         createOrder: async () => {
           const res = await fetch("/api/create-order", {
@@ -66,12 +67,8 @@ export default function PayPalButtons({ patientId, patientName, amount, donorNam
             setError("Payment failed. Please try again.");
           }
         },
-        onError: () => {
-          setError("Something went wrong. Please try again.");
-        },
-        onCancel: () => {
-          setError("");
-        },
+        onError: () => setError("Something went wrong. Please try again."),
+        onCancel: () => setError(""),
       }).render(containerRef.current);
 
       setLoading(false);
@@ -115,11 +112,21 @@ export default function PayPalButtons({ patientId, patientName, amount, donorNam
     <div className="space-y-3">
       {loading && (
         <div className="flex items-center justify-center py-6">
-          <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-teal-400" />
         </div>
       )}
-      <div ref={containerRef} />
-      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      {/* PayPal renders here */}
+      <div ref={containerRef} className="min-h-[90px]" />
+
+      {!loading && (
+        <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+          <Lock className="h-3 w-3" />
+          <span>Secured by PayPal &middot; Card payments open in a new page</span>
+        </div>
+      )}
+
+      {error && <p className="text-center text-sm text-red-500">{error}</p>}
     </div>
   );
 }

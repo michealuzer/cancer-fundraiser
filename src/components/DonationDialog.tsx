@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
 import PayPalButtons from "./PayPalButtons";
 
 const PRESETS = [10, 25, 50, 100];
@@ -55,29 +55,44 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-sm">
 
         {view === "pay" ? (
           <div className="space-y-4">
-            <button
-              type="button"
-              onClick={() => setView("form")}
-              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </button>
-
-            <div className="rounded-xl bg-gray-50 px-4 py-3 text-center">
-              <p className="text-xs font-medium uppercase tracking-widest text-gray-400">Donating</p>
-              <p className="font-fraunces text-3xl font-bold text-teal-700">
-                ${numericAmount!.toLocaleString()}
-              </p>
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setView("form")}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Complete donation</p>
+                <p className="text-xs text-gray-400">for {patientName}</p>
+              </div>
             </div>
 
-            <p className="text-center text-sm text-gray-500">
-              Choose how you&apos;d like to donate
-            </p>
+            {/* Donor summary card */}
+            <div className="rounded-2xl bg-teal-50 px-4 py-3 ring-1 ring-teal-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-teal-500" fill="currentColor" />
+                  <span className="text-sm font-medium text-teal-700">
+                    {donorName.trim() || "Anonymous"}
+                  </span>
+                </div>
+                <span className="font-fraunces text-xl font-bold text-teal-700">
+                  ${numericAmount!.toLocaleString()}
+                </span>
+              </div>
+              {message.trim() && (
+                <p className="mt-1.5 text-xs italic text-teal-600">&ldquo;{message.trim()}&rdquo;</p>
+              )}
+            </div>
 
+            {/* PayPal buttons */}
             <PayPalButtons
               patientId={patientId}
               patientName={patientName}
@@ -97,8 +112,8 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               </DialogDescription>
             </DialogHeader>
 
-            <div className="mt-2 space-y-5">
-              {/* Preset shortcuts */}
+            <div className="mt-2 space-y-4">
+              {/* Presets */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   Select or enter amount
@@ -122,7 +137,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                 </div>
               </div>
 
-              {/* Amount input */}
+              {/* Custom amount */}
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">$</span>
                 <input
@@ -131,11 +146,11 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
                   placeholder="Or type any amount"
                   value={amount}
                   onChange={(e) => { setAmount(e.target.value); setError(""); }}
-                  className="w-full rounded-xl border-2 border-gray-200 py-3 pl-8 pr-3 text-sm font-medium outline-none transition-all focus:border-teal-500 focus:ring-1 focus:ring-teal-100"
+                  className="w-full rounded-xl border-2 border-gray-200 py-2.5 pl-8 pr-3 text-sm font-medium outline-none transition-all focus:border-teal-500 focus:ring-1 focus:ring-teal-100"
                 />
               </div>
 
-              {/* Donor name */}
+              {/* Name */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Your name <span className="text-gray-400">(optional)</span>
@@ -168,7 +183,7 @@ export default function DonationDialog({ patientId, patientName, open, onOpenCha
               <button
                 type="button"
                 onClick={handleContinue}
-                className="w-full rounded-xl bg-teal-600 py-4 text-base font-semibold text-white transition-colors hover:bg-teal-700 active:scale-[0.98]"
+                className="w-full rounded-xl bg-teal-600 py-3.5 text-base font-semibold text-white transition-colors hover:bg-teal-700 active:scale-[0.98]"
               >
                 Continue to Payment
               </button>
